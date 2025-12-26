@@ -17,12 +17,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
-  adminer:
-    image: adminer:latest
-    container_name: xivmod_adminer
-    ports:
-      - "8085:8080"
 
   redis:
     image: redis:8.4.0
@@ -51,6 +45,44 @@ services:
       - "8081:8080"
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
+
+  keycloak_db:
+    image: postgres:18-alpine
+    container_name: xivmod_keycloak_db
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_DB: keycloak
+      POSTGRES_PASSWORD_FILE: /run/secrets/keycloak_db_password
+    secrets:
+      - keycloak_db_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:latest
+    container_name: xivmod_adminer
+    ports:
+      - "8085:8080"
+
+  minio:
+    image: minio/minio:latest
+    container_name: xivmod_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./minio/data:/data
 
 volumes:
   postgres_data:
