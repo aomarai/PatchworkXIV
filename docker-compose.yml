@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: xivmod_db
+    environment:
+      POSTGRES_USER: xivmod
+      POSTGRES_DB: xivmod_archive
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  adminer:
+    image: adminer:latest
+    container_name: xivmod_adminer
+    ports:
+      - "8085:8080"
+
+  redis:
+    image: redis:8.4.0
+    container_name: xivmod_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  keycloak:
+    image: keycloak/keycloak:26.4
+    container_name: xivmod_keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_password
+      KC_DB: dev-file
+    command: start-dev
+    secrets:
+      - keycloak_password
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+
+volumes:
+  postgres_data:
+  redis_data:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  keycloak_password:
+    file: ./secrets/keycloak_password.txt
