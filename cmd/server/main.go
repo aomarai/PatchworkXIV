@@ -16,7 +16,7 @@ func main() {
 
 	// Initialize OIDC middleware to verify tokens issued by Keycloak.
 	// Services in Docker can reach Keycloak at http://keycloak:8080
-	oidcMiddleware, err := middleware.OIDCMiddleware(context.Background(), "http://keycloak:8080/realms/xivmod", "xivmod-client")
+	oidcMiddleware, err := middleware.OIDCMiddleware(context.Background(), "http://keycloak:8080/realms/patchworkxiv", "patchworkxiv-client")
 	if err != nil {
 		log.Fatalf("failed to initialize OIDC middleware: %v", err)
 	}
